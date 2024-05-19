@@ -1,6 +1,7 @@
 from file import File as HFile, Row
+import time
 
-class Table:
+class Tabla:
     """
     Clase Table que representa una tabla con familias de columnas y filas.
 

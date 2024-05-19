@@ -1,3 +1,5 @@
+import time
+
 class File:
     ''' 
     Clase para manejar archivos. 
