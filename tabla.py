@@ -57,7 +57,7 @@ class Tabla:
         """
         self.enabled = True
 
-    def is_enabled(self):
+    def is_enable(self):
         """
         Verifica si la tabla está habilitada.
 

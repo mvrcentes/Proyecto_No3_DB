@@ -8,7 +8,7 @@ class HBase:
         """
         self.tables = {}  # Inicializa el diccionario vacío que contendrá las tablas
 
-    def create(self, name, familia_columnas):
+    def Create(self, name, familia_columnas):
         """
         Crea una nueva tabla con el nombre especificado y las familias de columnas dadas.
 
@@ -25,7 +25,7 @@ class HBase:
             return True  # Devuelve True si la tabla se ha creado correctamente
         return False  # Devuelve False si la tabla ya existe
 
-    def list(self):
+    def List(self):
         """
         Lista los nombres de todas las tablas existentes.
 
@@ -33,3 +33,53 @@ class HBase:
             dict_keys: Una vista de los nombres de las tablas.
         """
         return self.tables.keys()  # Devuelve las claves del diccionario de tablas
+
+    def Enable(self, name):
+        if name in self.tables.keys():
+            self.tables[name].enable()
+            return True
+        return False
+
+    def Disable(self, name):
+        if name in self.tables.keys():
+            self.tables[name].disable()
+            return True
+        return False
+    
+    def Is_enable(self,name):
+        if name in self.tables.keys():
+            return self.tables[name].is_enable()
+        return False
+    
+    def Alter_table_add(self, name, familia_columnas):
+        if name in self.tables.keys():
+            return self.tables[name].add_family(familia_columnas)
+        return False
+    
+    def Alter_table_delete(self,name,familia_columnas):
+        if name in self.tables.keys():
+            return self.tables[name].delete_family(familia_columnas)
+        return False
+        
+    def Alter_table_add_column(self, name, familia_columnas, columna):
+        if name in self.tables.keys():
+            return self.tables[name].add_column(familia_columnas, columna)
+        return False
+    
+    def Alter_table_name(self,table , nuevo_nombre):
+        nombre_viejo = table in self.tables.keys()
+        nombre_repetido = nuevo_nombre in self.tables.keys()
+
+        if nombre_viejo and not nombre_repetido:
+            tabla_anterior = self.tables[table]
+            del self.tables[table]
+            tabla_anterior.change_name(nuevo_nombre)
+            self.tables[nuevo_nombre] = tabla_anterior
+            return True
+        return False
+    
+    def Describe(self, nombre_tabla):
+        if nombre_tabla not in self.tables.keys():
+            return False
+        self.tables[nombre_tabla].describe()
+        return True
