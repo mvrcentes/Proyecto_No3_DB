@@ -150,24 +150,25 @@ class Tabla:
             bool: True si el valor se insertó correctamente, False en caso contrario.
         """
         if not self.enabled:
-            return False
+            return False  # Verifica si la tabla está habilitada; retorna False si no lo está
         if column_family not in self.family_columns.keys():
-            return False
+            return False  # Verifica si la familia de columnas existe; retorna False si no existe
         if column_name not in self.family_columns[column_family]:
-            return False
+            return False  # Verifica si la columna existe en la familia de columnas; retorna False si no existe
 
         if not self.h_files:
-            row_t = Row(row_key, f'{column_family}:{column_name}', value)
-            h_file_t = HFile([row_t], column_family)
-            self.h_files = [h_file_t]
-            return True
+            row_t = Row(row_key, f'{column_family}:{column_name}', value)  # Crea una nueva fila con la clave, familia de columnas, nombre de columna y valor
+            h_file_t = HFile([row_t], column_family)  # Crea un nuevo HFile con la fila y la familia de columnas
+            self.h_files = [h_file_t]  # Asigna el HFile recién creado a la lista de HFiles
+            return True  # Retorna True indicando que la operación fue exitosa
         else:
             for hf in self.h_files:
                 if column_family == hf.column_family:
-                    hf.create_row(row_key, f'{column_family}:{column_name}', value)
-                    return True
+                    hf.create_row(row_key, f'{column_family}:{column_name}', value)  # Crea una nueva fila en el HFile existente
+                    return True  # Retorna True indicando que la operación fue exitosa
                 else:
-                    return False
+                    return False  # Retorna False si la familia de columnas no coincide
+
 
     def get(self, row_key, column_family, column, version=1):
         """
@@ -255,27 +256,28 @@ class Tabla:
             list: Lista de filas escaneadas.
         """
         if not self.enabled:
-            return False
+            return False  # Verifica si la tabla está habilitada; retorna False si no lo está
 
-        rows = []
-        if not start_row and not end_row:
-            for h_file in self.h_files:
-                count = 0
-                old_key = None
-                for row in h_file.rows:
+        rows = []  # Inicializa una lista vacía para almacenar las filas que se van a devolver
+        if not start_row and not end_row:  # Verifica si no se han proporcionado filas de inicio y fin
+            for h_file in self.h_files:  # Itera sobre cada HFile en la lista de HFiles
+                count = 0  # Inicializa un contador para limitar el número de filas
+                old_key = None  # Inicializa una variable para almacenar la clave de la fila anterior
+                for row in h_file.rows:  # Itera sobre cada fila en el HFile
                     if old_key and old_key != row.key:
-                        count += 1
+                        count += 1  # Incrementa el contador si la clave de la fila actual es diferente a la clave de la fila anterior
                     if limit and count == limit:
-                        break
-                    old_key = row.key
-                    rows.append(row)
+                        break  # Rompe el bucle si se ha alcanzado el límite de filas
+                    old_key = row.key  # Actualiza old_key con la clave de la fila actual
+                    rows.append(row)  # Añade la fila actual a la lista de filas
 
-        if start_row and end_row:
-            for h_file in self.h_files:
-                for row in h_file.rows:
+        if start_row and end_row:  # Verifica si se han proporcionado filas de inicio y fin
+            for h_file in self.h_files:  # Itera sobre cada HFile en la lista de HFiles
+                for row in h_file.rows:  # Itera sobre cada fila en el HFile
                     if row.key >= start_row and row.key < end_row:
-                        rows.append(row)
-        return rows
+                        rows.append(row)  # Añade la fila a la lista de filas si su clave está en el rango especificado
+        return rows  # Retorna la lista de filas
+
 
     def describe(self):
         """

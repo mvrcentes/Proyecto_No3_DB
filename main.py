@@ -88,6 +88,19 @@ def main():
                     else:
                         print(f">> Ha ocurrido un error, tabla inexistente")
 
+            elif comando[0] == "drop":
+                nombre_tabla = comando[1][1:-1]
+                if hbase.Delete_table(nombre_tabla):
+                    print(f">> Se ha eliminado la tabla <{nombre_tabla}>")
+                else:
+                    print(f"Ha ocurrido un error, tabla inexistente o tabla habilitada, deshabilitar en caso habilitada")
+            
+            elif comando[0] == "drop_all":
+                if hbase.Delete_all_table():
+                    print(f">> Se han eliminado todas las tablas")
+                else:
+                    print(f">> Algo salió mal.")
+
             elif comando[0] == "describe":
                 contenido = comando[1][1:-1]
                 res = hbase.Describe(contenido)
@@ -108,7 +121,7 @@ def main():
                     "\n\talter 'nombre_tabla', {DELETE => 'columna'}, DEBE HABER ESPACIO ENTRE LA , Y {" +
                     "\n\tdrop"+
                     "\n\tdrop_all"+
-                    "\n\tdescribe"+
+                    "\n\tdescribe 'nombre_tabla'"+
                     "\n\n ============= FUNCIONES DML =============\n"+
                     "\n\tput"+
                     "\n\tget"+
@@ -122,4 +135,4 @@ def main():
             print(">> Comando no reconocido ", e)
 
 if __name__ == "__main__":
-    main()  # Ejecuta la función principal
+    main()
