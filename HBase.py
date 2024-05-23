@@ -185,3 +185,14 @@ class HBase:
             return False  # Retorna False si la tabla no existe
         self.tables[nombre_tabla].describe()  # Describe la tabla
         return True  # Retorna True indicando éxito
+
+    def Get(self, nombre_tabla, row_key, familia_columnas, version):
+        if nombre_tabla in self.tables.keys():
+            rows = []
+            for colmna in familia_columnas:
+                cf, col = colmna.split(':')
+                filas_encontradas = self.tables[nombre_tabla].get(row_key, cf, col, version)
+                if filas_encontradas:
+                    rows.append(filas_encontradas)
+            return rows
+        return None
