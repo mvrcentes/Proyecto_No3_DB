@@ -110,6 +110,22 @@ def main():
             res = hbase.Describe(contenido)
             if not res:
                 print(f">> Error al realizar el describe de la tabla <{comando[1]}>, No existe")
+        
+        elif comando[0] == "deleteall":
+            nombre_tabla = comando[1][1:-1]
+            if hbase.Delete_all(nombre_tabla):
+                print(f">> Se han eliminado todos los registros de la tabla <{nombre_tabla}>")
+            else:
+                print(f">> Ha ocurrido un error, tabla inexistente")
+        
+        elif comando[0] == "put":
+            nombre_tabla = comando[1][1:-1]
+            contenido = " ".join(comando[2:])
+            contenido = contenido.split(",")
+            if hbase.Put(nombre_tabla, contenido):
+                print(f">> Se ha insertado el registro en la tabla <{nombre_tabla}>")
+            else:
+                print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
         # <========================== FUNCIONES DML  ==========================>
         elif comando[0] == "get":
             
