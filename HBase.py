@@ -196,3 +196,14 @@ class HBase:
                     rows.append(filas_encontradas)
             return rows
         return None
+    
+    def Scan(self, nombre_tabla, familia_columnas, version):
+        if nombre_tabla in self.tables.keys():
+            rows = []
+            for colmna in familia_columnas:
+                cf, col = colmna.split(':')
+                filas_encontradas = self.tables[nombre_tabla].scan(cf, col, version)
+                if filas_encontradas:
+                    rows.append(filas_encontradas)
+            return rows
+        return None
