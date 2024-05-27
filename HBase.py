@@ -220,3 +220,11 @@ class HBase:
                 self.tables[nombre_tabla].put(row_key, cf, col, valores)
             return True
         return False
+    
+    def Truncate(self, nombre_tabla):
+        if nombre_tabla in self.tables.keys():
+            self.Disable(nombre_tabla)
+            self.tables[nombre_tabla].truncate()
+            self.Enable(nombre_tabla)
+            return True
+        return False
