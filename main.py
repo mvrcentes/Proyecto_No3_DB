@@ -122,10 +122,22 @@ def main():
 				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
 
 		elif comando[0] == "get":
-			pass
+			nombre_tabla = comando[1][1:-1]
+			res = hbase.Get(nombre_tabla, comando[2], comando[3], comando[4])
+			if res:
+				print(f">> Se ha obtenido la informacion <{nombre_tabla}>")
+				print(res)
+			else:
+				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
 
 		elif comando[0] == "scan":
-			pass
+			nombre_tabla = comando[1][1:-1]
+			res = hbase.Scan(nombre_tabla, comando[2], comando[3])
+			if res:
+				print(f">> Se ha obtenido la informacion <{nombre_tabla}>")
+				print(res)
+			else:
+				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
 
 		elif comando[0] == "delete":
 			pass
