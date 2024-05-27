@@ -207,3 +207,8 @@ class HBase:
                     rows.append(filas_encontradas)
             return rows
         return None
+    
+    def Count(self, nombre_tabla):
+        if nombre_tabla in self.tables.keys():
+            return self.tables[nombre_tabla].count()
+        return None
