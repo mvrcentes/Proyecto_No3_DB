@@ -212,3 +212,11 @@ class HBase:
         if nombre_tabla in self.tables.keys():
             return self.tables[nombre_tabla].count()
         return None
+    
+    def Put(self, nombre_tabla, row_key, familia_columnas, valores):
+        if nombre_tabla in self.tables.keys():
+            for colmna in familia_columnas:
+                cf, col = colmna.split(':')
+                self.tables[nombre_tabla].put(row_key, cf, col, valores)
+            return True
+        return False
