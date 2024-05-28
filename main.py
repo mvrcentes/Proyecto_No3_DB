@@ -140,7 +140,11 @@ def main():
 				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
 
 		elif comando[0] == "delete":
-			pass
+			nombre_tabla = comando[1][1:-1]
+			if hbase.Delete_table(nombre_tabla):
+				print(f">> Se ha borrado la tabla <{nombre_tabla}>")
+			else:
+				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
 
 		elif comando[0] == "deleteall":
 			nombre_tabla = comando[1][1:-1]
@@ -150,10 +154,20 @@ def main():
 				print(f">> Ha ocurrido un error, tabla inexistente")
 
 		elif comando[0] == "count":
-			pass
+			nombre_tabla = comando[1][1:-1]
+			res = hbase.Count(nombre_tabla)
+			if res:
+				print(f">> Se ha obtenido la informacion <{nombre_tabla}>")
+				print(res)
+			else:
+				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
 
 		elif comando[0] == "truncate":
-			pass
+			nombre_tabla = comando[1][1:-1]
+			if hbase.Truncate(nombre_tabla):
+				print(f">> Se ha truncado la tabla <{nombre_tabla}>")
+			else:
+				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
 
 
 		elif comando[0] == "help":  # Si el comando es "help"
