@@ -1,5 +1,12 @@
 from HBase import HBase
 import time
+import os
+
+def clear_screen():
+    # Verifica el sistema operativo y ejecuta el comando adecuado
+    if os.name == 'posix':  # Linux y macOS
+        os.system('clear')
+
 
 def main():
 	"""
@@ -169,7 +176,9 @@ def main():
 			else:
 				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
 
-
+		elif comando[0] == "clear":
+			clear_screen()
+			
 		elif comando[0] == "help":  # Si el comando es "help"
 			print(
 				"\n\n============ COMANDOS PERMITIDOS ============\n\n"+
@@ -186,7 +195,7 @@ def main():
 				"\n\tdrop_all"+
 				"\n\tdescribe 'nombre_tabla'"+
 				"\n\n ============= FUNCIONES DML =============\n"+
-				"\n\tput"+
+				"\n\tput 'nombre_tabla', 2, "+
 				"\n\tget"+
 				"\n\tscan"+
 				"\n\tdelete"+
