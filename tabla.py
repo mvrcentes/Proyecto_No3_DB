@@ -134,7 +134,7 @@ class Tabla:
 			return False
 		self.name = name
 
-	def put(self, row_key, column_family, column_name, value, timestamp = None):
+	def put(self, table_name,row_key, column_family, column_name, value, timestamp = None):
 		"""
 		Inserta un valor en la tabla.
 
@@ -156,6 +156,9 @@ class Tabla:
 		if column_name not in self.family_columns[column_family]:
 			return False  # Verifica si la columna existe en la familia de columnas; retorna False si no existe
 
+		if not timestamp:
+			timestamp = time.time()
+		
 		if not self.h_files:
 			row_t = Row(row_key, f'{column_family}:{column_name}', timestamp, value)  # Crea una nueva fila con la clave, familia de columnas, nombre de columna y valor
 			h_file_t = HFile([row_t], column_family)  # Crea un nuevo HFile con la fila y la familia de columnas
@@ -210,13 +213,13 @@ class Tabla:
 		"""
 		deleted_rows = 0
 		if not self.enabled:
-			return deleted_rows
-		if column_family is not None and column_family not in self.family_columns.keys():
-			return deleted_rows
-		if column is not None and column not in self.family_columns[column_family]:
-			return deleted_rows
+				return deleted_rows
+		if column_family != None and column_family not in self.family_columns.keys():
+				return deleted_rows
+		if column != None and column not in self.family_columns[column_family]:
+				return deleted_rows
 		for h_file in self.h_files:
-			deleted_rows += h_file.delete(row_key, column_family, column, timestamp)
+				deleted_rows += h_file.delete(row_key, column_family, column, timestamp)
 		return deleted_rows
 
 	def truncate(self):

@@ -5,7 +5,6 @@ class File:
 	Clase para manejar archivos. 
 	Un HFile tiene un arreglo de columnas y un arreglo de filas.
 	'''
-	
 	rows = []
 
 	def __init__(self, rows, column_family):
@@ -55,7 +54,7 @@ class File:
 		counter = 0
 		for row in self.rows:
 			col_key = column_family + ":" + column
-			if row.key == key and row.column == col_key and row.enabled:
+			if row.key == key and row.column == col_key and row.enabled == True:
 				counter += 1
 				if counter == version:
 					rows_found.append(row)
@@ -74,26 +73,29 @@ class File:
 		'''
 		rows_deleted = 0
 		for row in self.rows:
-			if column_family is None and column is None and timestamp is None:
-				if row.key == key and row.enabled:
+			# If all parameters are None, delete all rows with the given key
+			if column_family == None and column == None and timestamp == None:
+				if row.key == key and row.enabled == True:
 					row.disable()
 					rows_deleted += 1
-			elif column_family is not None and column is None and timestamp is None:
-				if row.key == key and column_family in row.column and row.enabled:
+			# If only column family is given, delete all rows with the given key and column family
+			if column_family != None and column == None and timestamp == None:
+				if row.key == key and column_family in row.column and row.enabled == True:
 					row.disable()
 					rows_deleted += 1
-			elif column_family is not None and column is not None and timestamp is None:
+			# If only column is given, delete all rows with the given key and column
+			if column_family != None and column != None and timestamp == None:
 				col_key = column_family + ":" + column
-				if row.key == key and row.column == col_key and row.enabled:
+				if row.key == key and row.column == col_key and row.enabled == True:
 					row.disable()
 					rows_deleted += 1
-			elif column_family is not None and column is not None and timestamp is not None:
+			if column_family != None and column != None and timestamp != None:
 				col_key = column_family + ":" + column
-				if row.key == key and row.column == col_key and row.timestamp == timestamp and row.enabled:
+				if row.key == key and row.column == col_key and row.timestamp == timestamp and row.enabled == True:
 					row.disable()
 					rows_deleted += 1
 		return rows_deleted
-
+	
 class Row:
 	''' 
 	Clase para manejar filas. 

@@ -55,7 +55,12 @@ def main(hbase):
 				print(f">> La tabla <{nombre_tabla}> se ha habilitado.")
 
 		elif comando[0] == "is_enabled":
-			nombre_tabla = comando[1][1:-1] # Obteine el nombre de la tabla, eliminando las comillas
+			# print(comando)
+			if len(comando) > 1:
+				nombre_tabla = comando[1][1:-1] # Obteine el nombre de la tabla, eliminando las comillas
+			else:
+				print(f">> Ingrese el nombre de la tabla.")
+				continue
 			print(f">> {str(hbase.Is_enable(nombre_tabla))}") # muestra el estado del elemento (true -> enable, false -> disable)
 
 		elif comando[0] == "alter":
@@ -116,145 +121,232 @@ def main(hbase):
 		# <========================== FUNCIONES DML  ==========================>
 		elif comando[0] == "put":
 			comando[1].replace("'","")
-			nombre_tabla = comando[1][1:-1]
-			contenido = " ".join(comando[2:])
-			contenido = contenido.split(",")
-			if hbase.Put(nombre_tabla, contenido):
-				print(f">> Se ha insertado el registro en la tabla <{nombre_tabla}>")
+			arguments = comando[1].split(",")
+			if len(arguments) < 4:
+					print(">> Error con el comando")
+					continue
+			table_name = arguments[0][1:-1]
+			row = arguments[1]
+			column_family = arguments[2][1:-1].split(':')[0]
+			column_name = arguments[2][1:-1].split(':')[1]
+			value = arguments[3][1:-1]
+			timestamp = arguments[4] if len(arguments) == 5 else None
+
+			if hbase.Put(table_name, row, column_family, column_name, value, timestamp):
+				print(f">> Se ha insertado el registro en la tabla <{table_name}>")
 			else:
-				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
+				print(">> Ha ocurrido un error")
 
 		elif comando[0] == "get":
-			nombre_tabla = comando[1][1:-1]
 			comando[1].replace("'","")
-			res = hbase.Get(nombre_tabla, comando[2], comando[3], comando[4])
-			if res:
-				print(f">> Se ha obtenido la informacion <{nombre_tabla}>")
-				print(res)
-			else:
-				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
-
-		elif comando[0] == "scan":
-			nombre_tabla = comando[1][1:-1]
-			comando[1].replace("'","")
-			args = comando[1].split(",")
-			if len(args) < 1:
+			content = "".join(comando[1:])
+			content = content.split(",")
+			table_name = content[0].replace("'","")
+			if len(content) < 3:
 				print(">> Error con el comando")
 				continue
-			nombre_tabla = args[0][1:-1]
-			largo = len(args)
-			inicio, fin, limite = None, None, None
-			if len(args) == 3:
-				if args[1][0] != '{' and args[2][-1] != '}':
+			
+			row_key = content[1].replace("'","")
+			extra = ",".join(content[2:])
+			extra = extra.replace("'","")
+			extra = extra.replace(" ","")
+			extra = extra.replace("{","")
+			extra = extra.replace("}","")
+			parameters = extra.split(",")
+			column_family = None
+			column = None
+			version = 1
+			for p in parameters:
+				key, value = p.split("=>")
+				if key == "COLUMN":
+					column_family, column = value.split(":")
+				if key == "VERSION":
+					version = int(value)
+			
+			rows = hbase.Get(table_name, row_key,[column_family + ":" + column], version)
+			if rows is None or len(rows) == 0:
+				print(">> No se encontraron registros")
+			else:
+				for row in rows:
+					print(">> Key:" + str(row.key))
+					print(">> Value:" + str(row.value))
+					print(">> Timestamp:" + str(row.timestamp))
+
+		elif comando[0] == "scan":
+			comando[1].replace("'","")
+			arguments = comando[1].split(",")
+			if len(arguments) < 1:
+					print(">> Error con el comando")
+					continue
+			table_name = arguments[0][1:-1]
+
+			lenn = len(arguments)
+			start, end, limit = None, None, None
+			if len(arguments) == 3:
+				if arguments[1][0] != '{' and arguments[2][-1] != '}':
 					print(">> Error con el comando")
 					continue
 				else:
-					arg1 = args[1][1:]
-					arg2 = args[2][:-1]
+					arg1 = arguments[1][1:]
+					arg2 = arguments[2][:-1]
 
 					if '=>' not in arg1 or '=>' not in arg2:
 						print(">> Error con el comando")
 						continue
 					else:
-						inicio = arg1.split('=>')[1]
-						fin = arg2.split('=>')[1]
-						inicio = int(inicio)
-						fin = int(fin)
-						clave_inicio = arg1.split('=>')[0]
-						clave_fin = arg2.split('=>')[0]
-						if clave_inicio != 'STARTROW' or clave_fin != 'ENDROW':
+						start = arg1.split('=>')[1]
+						end = arg2.split('=>')[1]
+						start = int(start)
+						end = int(end)
+						keyword_start = arg1.split('=>')[0]
+						keyword_end = arg2.split('=>')[0]
+						if keyword_start != 'STARTROW' or keyword_end != 'ENDROW':
 							print(">> Error con el comando")
 							continue
 
-			if len(args) == 2:
-				if args[1][0] != '{' and args[1][-1] != '}':
+			if len(arguments) == 2:
+				if arguments[1][0] != '{' and arguments[1][-1] != '}':
 					print(">> Error con el comando")
 					continue
 				else:
-					arg1 = args[1][1:-1]
+					arg1 = arguments[1][1:-1]
 					if '=>' not in arg1:
 						print(">> Error con el comando")
 						continue
 					else:
-						limite = arg1.split('=>')[1]
-						limite = int(limite)
+						limit = arg1.split('=>')[1]
+						limit = int(limit)
 						keyword_lim = arg1.split('=>')[0]
 						if keyword_lim != 'LIMIT':
 							print(">> Error con el comando")
 							continue	
 
-			if nombre_tabla not in hbase.tables.keys():
-				print(">> La tabla '" + nombre_tabla + "' no existe")
+			if table_name not in hbase.tables.keys():
+				print(">> La tabla '" + table_name + "' no existe")
 				continue
 			else:
-				if inicio and fin:
-					if inicio > fin:
+				if start and end:
+					if start > end:
 						print(">> Error con el comando, rangos no validos")
 						continue
-					elif inicio == fin:
+					elif start == end:
 						print(">> Error con el comando, STARTROW y ENDROW no pueden ser iguales")
 						continue
-					elif not hbase.Scan(table_name=nombre_tabla, row_start=inicio, row_stop=fin):
-						print(">> La tabla '" + nombre_tabla + "' no tiene registros en ese rango")
+					elif not hbase.Scan(table_name=table_name, row_start=start, row_stop=end):
+						print(">> La tabla '" + table_name + "' no tiene registros en ese rango")
 					else:
-						for row in hbase.Scan(table_name=nombre_tabla, row_start=inicio, row_stop=fin):
+						for row in hbase.Scan(table_name=table_name, row_start=start, row_stop=end):
 							if row.enabled:
 								print(" Key:" + str(row.key) + " value:" + str(row.value) + " timestamp:" + str(row.timestamp))
 				else:
-					if limite:
-						if not hbase.Scan(table_name=nombre_tabla, limit=limite):
-							print(">> La tabla '" + nombre_tabla + "' no tiene registros con las especificaciones dadas")
+					if limit:
+						if not hbase.Scan(table_name=table_name, limit=limit):
+							print(">> La tabla '" + table_name + "' no tiene registros con las especificaciones dadas 1")
 						else:
-							for row in hbase.Scan(table_name=nombre_tabla, limit=limite):
+							for row in hbase.Scan(table_name=table_name, limit=limit):
 								if row.enabled:
 									print(" Key:" + str(row.key) + " value:" + str(row.value) + " timestamp:" + str(row.timestamp))
 					else:
-						if not hbase.Scan(nombre_tabla):
-							print(">> La tabla '" + nombre_tabla + "' no tiene registros con las especificaciones dadas")
+						if not hbase.Scan(table_name):
+							print(">> La tabla '" + table_name + "' no tiene registros con las especificaciones dadas 2")
 						else:
-							for row in hbase.Scan(nombre_tabla):
+							for row in hbase.Scan(table_name):
 								if row.enabled:
 									print(" Key:" + str(row.key) + " value:" + str(row.value) + " timestamp:" + str(row.timestamp))
+
 		elif comando[0] == "delete":
-			nombre_tabla = comando[1][1:-1]
 			comando[1].replace("'","")
-			if hbase.Delete_table(nombre_tabla):
-				print(f">> Se ha borrado la tabla <{nombre_tabla}>")
+			multiple_keys = False
+			keys_found = ''
+			for c in comando[1]:		
+				if multiple_keys and c != '}':
+					keys_found += c
+				if c == "{":
+					multiple_keys = True
+
+			content = "".join(comando[1:])
+			content = content.split(",")
+			table_name = content[0]
+			table_name = table_name.replace("'","")
+			row_key = None
+			column_identifier = None
+			timestamp = None
+			if len(content) < 2:
+				print(">> Error con el comando")
+				continue
+			row_key = content[1]
+			column_name = None
+			column_family = None
+			if len(content) >= 3:
+				column_identifier = content[2]
+				if ":" in column_identifier:
+					column_family = column_identifier.split(":")[0]
+					column_name = column_identifier.split(":")[1]
+				else:
+					column_family = column_identifier
+			if len(content) == 4 and not multiple_keys:
+				timestamp = content[3]
+			if not multiple_keys:
+				total_deleted = hbase.Delete(table_name, row_key,  column_family, column_name, timestamp)
 			else:
-				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
+				splitted_keys = keys_found.split(',')
+				total_deleted = 0
+				for key in splitted_keys:
+					if ":" in key:
+						column_family = key.split(":")[0]
+						column_name = key.split(":")[1]
+					else:
+						column_family = key
+						column_name = None
+					total_deleted += hbase.Delete(table_name, row_key,  column_family, column_name, timestamp)
+			print(">> Se han eliminado " + str(total_deleted) + " registros")
 
 		elif comando[0] == "deleteall":
+			# example deleteall 'test',1
 			comando[1].replace("'","")
-			nombre_tabla = comando[1][1:-1]
-			if hbase.Delete_all(nombre_tabla):
-				print(f">> Se han eliminado todos los registros de la tabla <{nombre_tabla}>")
-			else:
-				print(f">> Ha ocurrido un error, tabla inexistente")
+			content = "".join(comando[1:])
+			content = content.split(",")
+			table_name = content[0]
+			table_name = table_name.replace("'","")
+			print(table_name)
+			row_key = None
+			if len(content) < 2:
+				print(">> Error con el comando")
+				continue
+			row_key = content[1]
+			total_deleted = hbase.Delete(table_name, row_key)
+			print(">> Se han eliminado " + str(total_deleted) + " registros")
 
 		elif comando[0] == "count":
+			hbase.Create_Test_Table()
 			comando[1].replace("'","")
-			argumentos = comando[1].split(",")
-			if len(argumentos) < 1:
-				print(f"Hay un error con el comando ingresado")
+			arguments = comando[1].split(",")
+			if len(arguments) < 1:
+				print(">> Error con el comando")
 				continue
-			nombre_tabla = argumentos[0][1:-1]
-			if nombre_tabla not in hbase.tables.keys():
-				print(f">> Tabla <{nombre_tabla}> no registrada. Creela")
+			table_name = arguments[0][1:-1]
+
+			if table_name not in hbase.tables.keys():
+				print(">> La tabla '" + table_name + "' no existe")
 				continue
 			else:
-				if not hbase.Count(nombre_tabla):
-					print(f">> Tabla <{nombre_tabla}> sin registros")
+				if not hbase.Count(table_name):
+					print(">> La tabla '" + table_name + "' no tiene registros")
 				else:
-					print(f">> Tabla <{nombre_tabla}> posee {str(hbase.Count(nombre_tabla))} registros.")
+					print(">> La tabla '" + table_name + "' tiene " + str(hbase.Count(table_name)) + " registros")
 
 		elif comando[0] == "truncate":
 			comando[1].replace("'","")
-			argumentos = comando[1].split(",")
-			if hbase.Truncate(nombre_tabla):
-				print(f">> Se ha truncado la tabla <{nombre_tabla}>")
+			content = "".join(comando[1:])
+			content = content.split(",")
+			table_name = content[0]
+			table_name = table_name.replace("'","")
+			
+			if hbase.Truncate(table_name):
+				print(">> Se ha truncado la tabla '" + table_name + "'")
 			else:
-				print(f">> Ha ocurrido un error, tabla inexistente o columna inexistente")
-
+				print(">> Ha ocurrido un error")	
+		# <======================= EXTRAS (NO PTS) =======================> 
 		elif comando[0] == "clear" or comando[0] == "cls":
 			clear_screen()
 
@@ -274,13 +366,13 @@ def main(hbase):
 				"\n\tdrop_all"+
 				"\n\tdescribe 'nombre_tabla'"+
 				"\n\n ============= FUNCIONES DML =============\n"+
-				"\n\tput"+
-				"\n\tget"+
-				"\n\tscan"+
-				"\n\tdelete"+
-				"\n\tdelete_all"+
-				"\n\tcount"+
-				"\n\ttruncate"
+				"\n\tput 'nombre_tabla',row,'family:column', 'value' ---> EJEMPLO put 'test',2,'general:name','GRANDE'		"+
+				"\n\tget 'nombre_tabla',1,{COLUMNA=>'columna:valor'} ---> ejemplo {COLUMN => 'movie_details:title'}"+ # ejemplo 
+				"\n\tscan 'nombre_tabla', scan 'nombre_tabla',{LIMIT=>2}, scan 'nombre_tabla',{STARTROW=>2,ENDROW=>4}"+
+				"\n\tdelete 'nombre_tabla',1"+
+				"\n\tdeleteall 'nombre_tabla',1"+
+				"\n\tcount 'nombre_tabla'"+
+				"\n\ttruncate 'nombre_tabla'"
 			)
 		else:
 			print(f"Comando <{comando[0]}> no reconocido por el simulador. <help> para mas informacion")
@@ -289,4 +381,6 @@ def main(hbase):
 if __name__ == "__main__":
 	hbase = HBase()
 	hbase.cargar_data()
+	hbase.Create_Test_Table()
+	hbase.Create_Test_Table2()
 	main(hbase)
