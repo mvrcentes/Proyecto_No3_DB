@@ -134,7 +134,7 @@ class Tabla:
 			return False
 		self.name = name
 
-	def put(self, row_key, column_family, column_name, value):
+	def put(self, row_key, column_family, column_name, value, timestamp = None):
 		"""
 		Inserta un valor en la tabla.
 
@@ -157,14 +157,14 @@ class Tabla:
 			return False  # Verifica si la columna existe en la familia de columnas; retorna False si no existe
 
 		if not self.h_files:
-			row_t = Row(row_key, f'{column_family}:{column_name}', value)  # Crea una nueva fila con la clave, familia de columnas, nombre de columna y valor
+			row_t = Row(row_key, f'{column_family}:{column_name}', timestamp, value)  # Crea una nueva fila con la clave, familia de columnas, nombre de columna y valor
 			h_file_t = HFile([row_t], column_family)  # Crea un nuevo HFile con la fila y la familia de columnas
 			self.h_files = [h_file_t]  # Asigna el HFile recién creado a la lista de HFiles
 			return True  # Retorna True indicando que la operación fue exitosa
 		else:
 			for hf in self.h_files:
 				if column_family == hf.column_family:
-					hf.create_row(row_key, f'{column_family}:{column_name}', value)  # Crea una nueva fila en el HFile existente
+					hf.create_row(row_key, f'{column_family}:{column_name}', value, timestamp)  # Crea una nueva fila en el HFile existente
 					return True  # Retorna True indicando que la operación fue exitosa
 				else:
 					return False  # Retorna False si la familia de columnas no coincide

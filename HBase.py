@@ -1,4 +1,7 @@
 from tabla import Tabla
+import numpy as np
+import csv
+
 
 class HBase:
 	def __init__(self) -> None:
@@ -8,6 +11,38 @@ class HBase:
 		"""
 		self.tables = {}  # Inicializa el diccionario vacío que contendrá las tablas
 
+	def cargar_data(self):
+		data = []
+		with open('peliculas.csv', 'r', encoding='utf-8') as csvfile:
+			reader = csv.reader(csvfile)
+			for row in reader:
+				if len(row) == 8:
+					data.append(row)
+		data = np.array(data)
+		data = data[~np.all(data == '', axis=1)]
+		data = data[1:]
+		self.tables['Data'] = Tabla('movies', ['movie_details', 'rating'])
+
+		count_movie_details = 1
+		for row in data:
+			self.Put('Data', str(count_movie_details), 'movie_details', 'id', row[0])
+			self.Put('Data', str(count_movie_details), 'movie_details', 'title', row[1])
+			self.Put('Data', str(count_movie_details), 'movie_details', 'year', row[2])
+			self.Put('Data', str(count_movie_details), 'movie_details', 'genre', row[3])
+			self.Put('Data', str(count_movie_details), 'movie_details', 'duration', row[5])
+			self.Put('Data', str(count_movie_details), 'movie_details', 'country', row[7])
+			count_movie_details += 1
+
+		count_rating = 1
+		for row in data:
+			self.Put('Data', str(count_rating), 'rating', 'id', row[0])
+			self.Put('Data', str(count_rating), 'rating', 'title', row[2])
+			self.Put('Data', str(count_rating), 'rating', 'director', row[4])
+			self.Put('Data', str(count_rating), 'rating', 'rating', row[6])
+			count_rating += 1
+
+	# id,título,año,género,director,duración,calificación,país
+	
 	def Create(self, name, familia_columnas):
 		"""
 		Crea una nueva tabla con el nombre especificado y las familias de columnas dadas.
@@ -195,30 +230,21 @@ class HBase:
 				if filas_encontradas:
 					rows.append(filas_encontradas)
 			return rows
-		return None
+		return False
 	
-	def Scan(self, nombre_tabla, familia_columnas, version):
+	def Scan(self, nombre_tabla, row_start = None, row_stop = None, limit = None):
 		if nombre_tabla in self.tables.keys():
-			rows = []
-			for colmna in familia_columnas:
-				cf, col = colmna.split(':')
-				filas_encontradas = self.tables[nombre_tabla].scan(cf, col, version)
-				if filas_encontradas:
-					rows.append(filas_encontradas)
-			return rows
+			return self.tables[nombre_tabla].scan(row_start, row_stop, limit)
 		return None
 	
 	def Count(self, nombre_tabla):
 		if nombre_tabla in self.tables.keys():
 			return self.tables[nombre_tabla].count()
-		return None
+		return False
 	
-	def Put(self, nombre_tabla, row_key, familia_columnas, valores):
-		if nombre_tabla in self.tables.keys():
-			for colmna in familia_columnas:
-				cf, col = colmna.split(':')
-				self.tables[nombre_tabla].put(row_key, cf, col, valores)
-			return True
+	def Put(self, table_name, row_key, column_family, column_name, value, timestamp = None):
+		if table_name in self.tables.keys():
+			return self.tables[table_name].put(row_key, column_family, column_name, value, timestamp)
 		return False
 	
 	def Truncate(self, nombre_tabla):
