@@ -222,8 +222,6 @@ class Tabla:
 				deleted_rows += h_file.delete(row_key, column_family, column, timestamp)
 		return deleted_rows
 
-	def delete_all(self, row_key, column_family=None, column=None, timestamp=None):
-		pass
 	def truncate(self):
 		"""
 		Vacía la tabla.

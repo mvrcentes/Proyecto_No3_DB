@@ -55,7 +55,12 @@ def main(hbase):
 				print(f">> La tabla <{nombre_tabla}> se ha habilitado.")
 
 		elif comando[0] == "is_enabled":
-			nombre_tabla = comando[1][1:-1] # Obteine el nombre de la tabla, eliminando las comillas
+			# print(comando)
+			if len(comando) > 1:
+				nombre_tabla = comando[1][1:-1] # Obteine el nombre de la tabla, eliminando las comillas
+			else:
+				print(f">> Ingrese el nombre de la tabla.")
+				continue
 			print(f">> {str(hbase.Is_enable(nombre_tabla))}") # muestra el estado del elemento (true -> enable, false -> disable)
 
 		elif comando[0] == "alter":
@@ -249,7 +254,6 @@ def main(hbase):
 								if row.enabled:
 									print(" Key:" + str(row.key) + " value:" + str(row.value) + " timestamp:" + str(row.timestamp))
 
-
 		elif comando[0] == "delete":
 			comando[1].replace("'","")
 			multiple_keys = False
@@ -362,7 +366,7 @@ def main(hbase):
 				"\n\tdrop_all"+
 				"\n\tdescribe 'nombre_tabla'"+
 				"\n\n ============= FUNCIONES DML =============\n"+
-				"\n\tput 'nombre_tabla',row,'family:column', 'value' ---> EJEMPLO put 'test',2,'general:name','GRANDE'"+
+				"\n\tput 'nombre_tabla',row,'family:column', 'value' ---> EJEMPLO put 'test',2,'general:name','GRANDE'		"+
 				"\n\tget 'nombre_tabla',1,{COLUMNA=>'columna:valor'} ---> ejemplo {COLUMN => 'movie_details:title'}"+ # ejemplo 
 				"\n\tscan 'nombre_tabla', scan 'nombre_tabla',{LIMIT=>2}, scan 'nombre_tabla',{STARTROW=>2,ENDROW=>4}"+
 				"\n\tdelete 'nombre_tabla',1"+
