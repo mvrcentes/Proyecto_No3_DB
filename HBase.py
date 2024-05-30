@@ -40,7 +40,7 @@ class HBase:
 			self.Put('Data', str(count_rating), 'rating', 'director', row[4])
 			self.Put('Data', str(count_rating), 'rating', 'rating', row[6])
 			count_rating += 1
-
+		print(f"data: {self.tables}")
 	# id,título,año,género,director,duración,calificación,país
 	
 	def Create(self, name, familia_columnas):

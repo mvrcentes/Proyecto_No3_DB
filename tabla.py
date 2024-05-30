@@ -3,7 +3,7 @@ import time
 
 class Tabla:
 	"""
-	Clase Table que representa una tabla con familias de columnas y filas.
+	Clase Tabla que representa una tabla con familias de columnas y filas.
 
 	Attributes:
 		name (str): Nombre de la tabla.
